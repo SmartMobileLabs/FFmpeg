@@ -1,3 +1,4 @@
+
 /*
  * RTP network protocol
  * Copyright (c) 2002 Fabrice Bellard
@@ -346,6 +347,11 @@ static int rtp_open(URLContext *h, const char *uri, int flags)
         if (av_find_info_tag(buf, sizeof(buf), "localport", p)) {
             s->local_rtpport = strtol(buf, NULL, 10);
         }
+#ifdef _CKE_TEST_
+        if (av_find_info_tag(buf, sizeof(buf), "buffer_size", p)) {
+            s->buffer_size = strtol(buf, NULL, 10);
+        }
+#endif
         if (av_find_info_tag(buf, sizeof(buf), "localrtpport", p)) {
             s->local_rtpport = strtol(buf, NULL, 10);
         }
@@ -494,6 +500,14 @@ static int rtp_read(URLContext *h, uint8_t *buf, int size)
                 *addr_lens[i] = sizeof(*addrs[i]);
                 len = recvfrom(p[i].fd, buf, size, 0,
                                 (struct sockaddr *)addrs[i], addr_lens[i]);
+#ifdef _CKE_TEST_LOG_
+		{
+                     int optval;
+                     socklen_t optlen=sizeof(optval);
+                     getsockopt(p[i].fd,SOL_SOCKET, SO_RCVBUF, &optval, &optlen);
+                     printf ("cke_test_log:%d\n",optval);
+                }
+#endif
                 if (len < 0) {
                     if (ff_neterrno() == AVERROR(EAGAIN) ||
                         ff_neterrno() == AVERROR(EINTR))

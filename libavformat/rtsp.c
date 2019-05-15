@@ -2303,6 +2303,8 @@ static int sdp_read_header(AVFormatContext *s)
 
     /* open each RTP stream */
     for (i = 0; i < rt->nb_rtsp_streams; i++) {
+        const char * additional_udp_string;
+        const char * tmp_string;
         char namebuf[50];
         rtsp_st = rt->rtsp_streams[i];
 
@@ -2318,12 +2320,25 @@ static int sdp_read_header(AVFormatContext *s)
                 av_dict_free(&opts);
                 goto fail;
             }
+            additional_udp_string  = "&buffer_size=200000000";
+            tmp_string = getenv("UDP_PARAMETER_STRING");
+            if (tmp_string)
+                    additional_udp_string = tmp_string; 
             ff_url_join(url, sizeof(url), "rtp", NULL,
                         namebuf, rtsp_st->sdp_port,
-                        "?localport=%d&ttl=%d&connect=%d&write_to_source=%d",
+#ifdef _CKE_TEST_
+                        "?localport=%d&ttl=%d&connect=%d&write_to_source=%d%s",
+#else
+			"?localport=%d&ttl=%d&connect=%d&write_to_source=%d",
+#endif
                         rtsp_st->sdp_port, rtsp_st->sdp_ttl,
                         rt->rtsp_flags & RTSP_FLAG_FILTER_SRC ? 1 : 0,
-                        rt->rtsp_flags & RTSP_FLAG_RTCP_TO_SOURCE ? 1 : 0);
+                        rt->rtsp_flags & RTSP_FLAG_RTCP_TO_SOURCE ? 1 : 0,
+#ifdef _CKE_TEST_
+                        additional_udp_string);
+#else
+                        );
+#endif
 
             append_source_addrs(url, sizeof(url), "sources",
                                 rtsp_st->nb_include_source_addrs,
