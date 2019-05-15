@@ -2312,7 +2312,7 @@ static int handle_packet(MpegTSContext *ts, const uint8_t *packet)
 
     pos = avio_tell(ts->stream->pb);
     if (pos >= 0) {
-        av_assert0(pos >= TS_PACKET_SIZE);
+        // av_assert0(pos >= TS_PACKET_SIZE);
         ts->pos47_full = pos - TS_PACKET_SIZE;
     }
 
